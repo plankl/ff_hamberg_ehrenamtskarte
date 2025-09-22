@@ -23,38 +23,45 @@ Sie müssen folgende 4 Secrets in Ihrem Repository einrichten:
 Erstellen Sie diese 4 Secrets:
 
 #### Secret 1: `GH_USERNAME`
+
 - **Name:** `GH_USERNAME`
 - **Value:** `plankl` (Ihr GitHub Username)
 
 #### Secret 2: `GH_EMAIL`
-- **Name:** `GH_EMAIL` 
+
+- **Name:** `GH_EMAIL`
 - **Value:** Ihre GitHub E-Mail Adresse (z.B. `ihre.email@example.com`)
 
 #### Secret 3: `GH_PAT`
+
 - **Name:** `GH_PAT`
 - **Value:** Das Personal Access Token aus Schritt 1
 
 #### Secret 4: `FF_DATA_TOKEN`
+
 - **Name:** `FF_DATA_TOKEN`
 - **Value:** Das gleiche Personal Access Token (für Website-Funktionalität)
 
 ## ✅ Überprüfung
 
 Nach dem Einrichten sollten Sie 4 Secrets haben:
+
 - `GH_USERNAME` ✅
-- `GH_EMAIL` ✅  
+- `GH_EMAIL` ✅
 - `GH_PAT` ✅
 - `FF_DATA_TOKEN` ✅
 
 ## 🚀 Was passiert dann?
 
 **Mit Ihren Credentials:**
+
 - ✅ Data Branch wird mit Ihrem Namen erstellt
 - ✅ Commits werden unter Ihrem Namen gemacht
 - ✅ Vollständiger Zugriff auf private Branches
 - ✅ Datenübertragung funktioniert komplett
 
 **Ohne Credentials (Fallback):**
+
 - ⚠️ Verwendet GitHub Actions Standard-User
 - ⚠️ Eingeschränkte Funktionalität
 - ⚠️ Daten-Upload eventuell nicht möglich
