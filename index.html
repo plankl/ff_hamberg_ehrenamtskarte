@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feuerwehr Hamberg - Mitgliederdaten Erfassung</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚒 Feuerwehr Hamberg</h1>
+            <h2>Mitgliederdaten Erfassung</h2>
+            <p>Bitte füllen Sie alle Felder vollständig aus</p>
+        </header>
+
+        <form id="memberForm" class="member-form">
+            <div class="form-group">
+                <label for="nachname">Nachname *</label>
+                <input type="text" id="nachname" name="nachname" required>
+            </div>
+
+            <div class="form-group">
+                <label for="vorname">Vorname *</label>
+                <input type="text" id="vorname" name="vorname" required>
+            </div>
+
+            <div class="form-group">
+                <label for="geburtsdatum">Geburtsdatum *</label>
+                <input type="date" id="geburtsdatum" name="geburtsdatum" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">E-Mail Adresse *</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="strasse">Straße *</label>
+                    <input type="text" id="strasse" name="strasse" required>
+                </div>
+                <div class="form-group">
+                    <label for="hausnummer">Hausnummer *</label>
+                    <input type="text" id="hausnummer" name="hausnummer" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="plz">PLZ *</label>
+                    <input type="text" id="plz" name="plz" pattern="[0-9]{5}" required>
+                </div>
+                <div class="form-group">
+                    <label for="ort">Ort *</label>
+                    <input type="text" id="ort" name="ort" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="telefon">Telefonnummer *</label>
+                <input type="tel" id="telefon" name="telefon" required>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="datenschutz" required>
+                    Ich stimme der Verarbeitung meiner Daten zu Verwaltungszwecken der Feuerwehr zu *
+                </label>
+            </div>
+
+            <button type="submit" class="submit-btn">Daten übermitteln</button>
+        </form>
+
+        <div id="status" class="status-message"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
