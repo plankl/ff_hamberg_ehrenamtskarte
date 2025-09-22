@@ -112,9 +112,9 @@ Das Standard-Passwort ist `FFHamberg2025!` und kann in der Datei `script.js` ge�
 
 ```javascript
 const ACCESS_CONFIG = {
-    correctPassword: 'IhrNeuesPasswort123!', // TODO: Ändern Sie dieses Passwort!
-    maxAttempts: 3,
-    lockoutTime: 300000 // 5 Minuten in Millisekunden
+  correctPassword: "IhrNeuesPasswort123!", // TODO: Ändern Sie dieses Passwort!
+  maxAttempts: 3,
+  lockoutTime: 300000, // 5 Minuten in Millisekunden
 };
 ```
 
