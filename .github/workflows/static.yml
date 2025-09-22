@@ -32,24 +32,12 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Setup Git credentials with Personal Access Token
+      - name: Setup Git credentials
         run: |
-          # Configure git with secure credentials from GitHub Secrets
-          if [ ! -z "${{ secrets.GH_USERNAME }}" ] && [ ! -z "${{ secrets.GH_PAT }}" ]; then
-            echo "Setting up Git credentials with Personal Access Token"
-            git config --global user.name "${{ secrets.GH_USERNAME }}"
-            git config --global user.email "${{ secrets.GH_EMAIL }}"
-            
-            # Setup credential helper for HTTPS authentication
-            git config --global credential.helper store
-            echo "https://${{ secrets.GH_USERNAME }}:${{ secrets.GH_PAT }}@github.com" > ~/.git-credentials
-            
-            echo "✅ Git credentials configured successfully"
-          else
-            echo "⚠️  Using default GitHub Actions credentials"
-            git config --global user.email "action@github.com"
-            git config --global user.name "GitHub Action"
-          fi
+          # Use default GitHub Actions credentials (sufficient for basic functionality)
+          echo "✅ Using GitHub Actions default credentials"
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
 
       - name: Create data branch if it doesn't exist
         run: |
@@ -137,71 +125,4 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-  # Optional: Create data summary (manual trigger only)
-  data-summary:
-    runs-on: ubuntu-latest
-    needs: deploy
-    if: github.event_name == 'workflow_dispatch'
 
-    steps:
-      - name: Checkout data branch
-        uses: actions/checkout@v4
-        with:
-          ref: data
-          fetch-depth: 0
-
-      - name: Generate data summary
-        run: |
-          echo "# 📊 Mitgliederdaten Übersicht" > data_summary.md
-          echo "Erstellt am: $(date '+%d.%m.%Y um %H:%M Uhr')" >> data_summary.md
-          echo "" >> data_summary.md
-
-          # Count total submissions
-          total=$(find data -name "member-data-*.json" -type f 2>/dev/null | wc -l)
-          echo "## 📈 Statistiken" >> data_summary.md
-          echo "- **Gesamte Anmeldungen:** $total" >> data_summary.md
-
-          # Recent submissions (last 7 days)
-          recent=$(find data -name "member-data-*.json" -type f -mtime -7 2>/dev/null | wc -l)
-          echo "- **Neue Anmeldungen (7 Tage):** $recent" >> data_summary.md
-          echo "" >> data_summary.md
-
-          # List recent files if any exist
-          if [ $recent -gt 0 ]; then
-            echo "## 📄 Aktuelle Dateien (letzte 7 Tage)" >> data_summary.md
-            find data -name "member-data-*.json" -type f -mtime -7 2>/dev/null | sort -r | head -10 | sed 's/^/- /' >> data_summary.md
-          else
-            echo "## 📄 Keine neuen Dateien in den letzten 7 Tagen" >> data_summary.md
-          fi
-
-          echo "" >> data_summary.md
-          echo "---" >> data_summary.md
-          echo "*Automatisch generiert durch GitHub Actions*" >> data_summary.md
-
-      - name: Setup Git credentials for data branch
-        run: |
-          # Use personal credentials if available, otherwise use GitHub Actions default
-          if [ ! -z "${{ secrets.GH_USERNAME }}" ] && [ ! -z "${{ secrets.GH_PAT }}" ]; then
-            echo "Using personal GitHub credentials"
-            git config --local user.name "${{ secrets.GH_USERNAME }}"
-            git config --local user.email "${{ secrets.GH_EMAIL }}"
-            git remote set-url origin https://${{ secrets.GH_USERNAME }}:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git
-          else
-            echo "Using GitHub Actions default credentials"
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action"
-          fi
-
-      - name: Commit summary
-        run: |
-          git add data_summary.md
-
-          if git diff --staged --quiet; then
-            echo "Keine Änderungen am Summary"
-          else
-            git commit -m "📊 Update data summary - $(date '+%d.%m.%Y %H:%M')"
-            git push
-            echo "✅ Data summary updated"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
