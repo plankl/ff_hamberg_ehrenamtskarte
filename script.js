@@ -304,9 +304,23 @@ async function getGitHubToken() {
     
     // Check if running on GitHub Pages with Actions (fallback)
     if (window.location.hostname.includes('github.io')) {
-        // If no token was injected, show error message
         console.error('❌ No valid token found. Current token:', GITHUB_TOKEN);
-        throw new Error('GitHub Token ist nicht verfügbar. Deployment läuft möglicherweise noch oder FF_DATA_TOKEN Secret fehlt.');
+        console.error('🔧 Token injection failed. This indicates FF_DATA_TOKEN secret is not properly configured.');
+        
+        // Temporary fallback: Ask user for token
+        const userToken = prompt(
+            '⚠️ GitHub Token nicht verfügbar!\n\n' +
+            'Temporäre Lösung: Geben Sie Ihren Personal Access Token ein:\n' +
+            '(Dieser sollte mit "ghp_" beginnen)\n\n' +
+            'Dauerhaften Fix: FF_DATA_TOKEN Secret in GitHub konfigurieren'
+        );
+        
+        if (userToken && userToken.startsWith('ghp_')) {
+            console.log('✅ Temporärer Token eingegeben');
+            return userToken.trim();
+        }
+        
+        throw new Error('GitHub Token ist erforderlich. Bitte konfigurieren Sie das FF_DATA_TOKEN Secret in den Repository Settings.');
     }
     
     // For local testing, prompt for token
