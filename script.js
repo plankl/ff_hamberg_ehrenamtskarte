@@ -134,7 +134,25 @@ function validatePassword() {
 // Show data preview
 function showPreview() {
     if (!validateForm()) {
-        showStatus('Bitte überprüfen Sie Ihre Eingaben.', 'error');
+        // Find first invalid field and scroll to it
+        const firstInvalidField = form.querySelector('.error, :invalid');
+        if (firstInvalidField) {
+            firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            firstInvalidField.focus();
+            
+            // Show specific error message
+            let fieldName = firstInvalidField.getAttribute('name') || firstInvalidField.id;
+            let errorMsg = `❌ Bitte ${getFieldDisplayName(fieldName)} korrekt ausfüllen.`;
+            showStatus(errorMsg, 'error');
+        } else {
+            showStatus('❌ Bitte überprüfen Sie Ihre Eingaben.', 'error');
+        }
+        
+        // Scroll to status message after a brief delay
+        setTimeout(() => {
+            document.getElementById('status').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 500);
+        
         return;
     }
     
@@ -215,11 +233,31 @@ async function confirmAndSubmit() {
         // Clear password field after successful submission
         document.getElementById('access_password').value = '';
         
-        submitBtn.style.display = 'none';
-        previewBtn.style.display = 'block';
+        // Reset button states for next entry
+        resetButtonStates();
+        
+        // Scroll to top to show success message
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
     } catch (error) {
         console.error('Error saving data:', error);
-        showStatus('❌ Fehler beim Übertragen der Daten. Bitte versuchen Sie es erneut.', 'error');
+        let errorMessage = '❌ Fehler beim Übertragen der Daten.';
+        
+        if (error.message.includes('token')) {
+            errorMessage += ' Token-Problem: Bitte GitHub Token erneut eingeben.';
+        } else if (error.message.includes('network')) {
+            errorMessage += ' Netzwerk-Problem: Prüfen Sie Ihre Internetverbindung.';
+        } else {
+            errorMessage += ' Bitte versuchen Sie es erneut oder kontaktieren Sie den Administrator.';
+        }
+        
+        showStatus(errorMessage, 'error');
+        
+        // Reset button states so user can try again
+        resetButtonStates();
+        
+        // Scroll to status message
+        document.getElementById('status').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 }
 
@@ -374,25 +412,42 @@ async function getGitHubToken() {
         console.error('❌ No valid token found. Current token:', GITHUB_TOKEN);
         console.error('🔧 Token injection failed. This indicates FF_DATA_TOKEN secret is not properly configured.');
         
+        // Show user-friendly error with instructions first
+        showStatus(
+            '❌ Token-Konfiguration fehlt! Administrator muss FF_DATA_TOKEN Secret hinzufügen.',
+            'error'
+        );
+        
         // Temporary fallback: Ask user for token
         const userToken = prompt(
             '⚠️ GitHub Token nicht verfügbar!\n\n' +
             'Temporäre Lösung: Geben Sie Ihren Personal Access Token ein:\n' +
             '(Dieser sollte mit "ghp_" beginnen)\n\n' +
-            'Dauerhaften Fix: FF_DATA_TOKEN Secret in GitHub konfigurieren'
+            'Dauerhaften Fix: FF_DATA_TOKEN Secret in GitHub konfigurieren\n' +
+            'Token erstellen: https://github.com/settings/tokens'
         );
         
-        if (userToken && userToken.startsWith('ghp_')) {
+        if (userToken && userToken.trim().startsWith('ghp_') && userToken.trim().length >= 36) {
             console.log('✅ Temporärer Token eingegeben');
             return userToken.trim();
         }
         
-        throw new Error('GitHub Token ist erforderlich. Bitte konfigurieren Sie das FF_DATA_TOKEN Secret in den Repository Settings.');
+        throw new Error('Kein gültiger GitHub Token verfügbar - Datenübertragung nicht möglich');
     }
     
-    // For local testing, prompt for token
-    const token = prompt('Bitte geben Sie Ihr GitHub Personal Access Token ein (nur für Tests):');
-    return token?.trim() || null;
+    // For local testing, prompt for token  
+    const userToken = prompt(
+        '🔑 GitHub Personal Access Token eingeben:\n\n' +
+        'Berechtigung: Contents (Read & Write)\n' +
+        'Format: ghp_...\n\n' +
+        'Token erstellen: https://github.com/settings/tokens'
+    );
+    
+    if (userToken && userToken.trim().startsWith('ghp_') && userToken.trim().length >= 36) {
+        return userToken.trim();
+    }
+    
+    throw new Error('Ungültiger GitHub Token - muss mit ghp_ beginnen');
 }
 
 // Form validation
@@ -482,6 +537,30 @@ function showSubmitButton() {
     previewBtn.style.display = 'none';
     submitBtn.style.display = 'block';
     submitBtn.onclick = confirmAndSubmit;
+}
+
+// Reset button states for new entry
+function resetButtonStates() {
+    submitBtn.style.display = 'none';
+    previewBtn.style.display = 'block';
+    submitBtn.onclick = null; // Clear onclick handler
+}
+
+// Get user-friendly field names for error messages
+function getFieldDisplayName(fieldName) {
+    const fieldNames = {
+        'nachname': 'Nachname',
+        'vorname': 'Vorname', 
+        'geburtsdatum': 'Geburtsdatum',
+        'email': 'E-Mail Adresse',
+        'strasse': 'Straße',
+        'hausnummer': 'Hausnummer',
+        'plz': 'Postleitzahl',
+        'ort': 'Ort',
+        'telefon': 'Telefonnummer',
+        'access_password': 'Passwort'
+    };
+    return fieldNames[fieldName] || fieldName;
 }
 
 // Add some additional security measures

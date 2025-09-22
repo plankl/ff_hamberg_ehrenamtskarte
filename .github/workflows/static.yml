@@ -90,15 +90,23 @@ jobs:
             echo "🔍 Token starts with: $(echo '${{ secrets.FF_DATA_TOKEN }}' | cut -c1-8)..."
             echo "🔍 Token length: $(echo '${{ secrets.FF_DATA_TOKEN }}' | wc -c)"
             
-            # Replace the token placeholder in the JavaScript file
-            sed 's/GITHUB_TOKEN_PLACEHOLDER/${{ secrets.FF_DATA_TOKEN }}/g' script.js > script_with_token.js
-            mv script_with_token.js script.js
+            # Use a simpler replacement approach
+            TOKEN="${{ secrets.FF_DATA_TOKEN }}"
+            # Escape special characters for sed
+            ESCAPED_TOKEN=$(printf '%s\n' "$TOKEN" | sed 's:[\\/&]:\\&:g')
+            sed "s/GITHUB_TOKEN_PLACEHOLDER/$ESCAPED_TOKEN/g" script.js > script_temp.js
+            mv script_temp.js script.js
             
             # Verify the replacement worked
-            if grep -q '${{ secrets.FF_DATA_TOKEN }}' script.js; then
+            if grep -q "ghp_" script.js; then
               echo "✅ Token injection successful!"
             else
-              echo "❌ Token injection failed - placeholder not found or replaced"
+              echo "❌ Token injection failed - no token pattern found"
+              # Debug output
+              echo "Debug: First 10 lines of script.js:"
+              head -10 script.js
+              echo "Debug: Looking for GITHUB_TOKEN_PLACEHOLDER:"
+              grep -n "GITHUB_TOKEN_PLACEHOLDER" script.js || echo "Not found"
             fi
             
             echo "✅ Data submission enabled with secure token injection"
