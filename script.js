@@ -284,15 +284,25 @@ async function saveDataToGitHub(data) {
 
 // Get GitHub token (this will be replaced with GitHub Actions workflow)
 async function getGitHubToken() {
+    // Debug information
+    console.log('🔍 Token Debug Info:', {
+        'GITHUB_TOKEN': GITHUB_TOKEN,
+        'Is Placeholder': GITHUB_TOKEN === 'GITHUB_TOKEN_PLACEHOLDER',
+        'Token Length': GITHUB_TOKEN ? GITHUB_TOKEN.length : 0,
+        'Hostname': window.location.hostname
+    });
+    
     // Check if we have a valid token from GitHub Actions deployment
     if (GITHUB_TOKEN && GITHUB_TOKEN !== 'GITHUB_TOKEN_PLACEHOLDER') {
+        console.log('✅ Valid token found, length:', GITHUB_TOKEN.length);
         return GITHUB_TOKEN;
     }
     
     // Check if running on GitHub Pages with Actions (fallback)
     if (window.location.hostname.includes('github.io')) {
         // If no token was injected, show error message
-        throw new Error('GitHub Token ist nicht verfügbar. Bitte konfigurieren Sie das FF_DATA_TOKEN Secret.');
+        console.error('❌ No valid token found. Current token:', GITHUB_TOKEN);
+        throw new Error('GitHub Token ist nicht verfügbar. Deployment läuft möglicherweise noch oder FF_DATA_TOKEN Secret fehlt.');
     }
     
     // For local testing, prompt for token
