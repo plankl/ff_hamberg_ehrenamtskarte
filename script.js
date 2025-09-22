@@ -190,6 +190,23 @@ async function confirmAndSubmit() {
     const formData = collectFormData();
     
     try {
+        // Check for duplicates first
+        showStatus('Prüfe auf doppelte Einträge...', 'loading');
+        const duplicateCheck = await checkForDuplicates(formData);
+        
+        if (duplicateCheck.isDuplicate) {
+            const proceed = confirm(
+                `⚠️ Möglicher doppelter Eintrag gefunden!\n\n` +
+                `${duplicateCheck.message}\n\n` +
+                `Möchten Sie trotzdem fortfahren?`
+            );
+            
+            if (!proceed) {
+                showStatus('Übertragung abgebrochen - doppelter Eintrag vermieden', 'warning');
+                return;
+            }
+        }
+        
         showStatus('Daten werden übertragen...', 'loading');
         await saveDataToGitHub(formData);
         showStatus('✓ Daten erfolgreich übertragen!', 'success');
@@ -241,6 +258,56 @@ function collectFormData() {
     };
     
     return data;
+}
+
+// Check for duplicate entries
+async function checkForDuplicates(newData) {
+    try {
+        const token = await getGitHubToken();
+        
+        // Try to load existing members summary
+        const response = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/data/all_members.json?ref=${GITHUB_CONFIG.branch}`, {
+            headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        });
+        
+        if (response.ok) {
+            const fileData = await response.json();
+            const existingData = JSON.parse(atob(fileData.content));
+            
+            // Check for duplicates based on email or name+birthdate
+            for (const existing of existingData.members || []) {
+                // Email duplicate check
+                if (existing.email.toLowerCase() === newData.email.toLowerCase()) {
+                    return {
+                        isDuplicate: true,
+                        field: 'email',
+                        existing: existing,
+                        message: `E-Mail Adresse bereits vorhanden: ${existing.vorname} ${existing.nachname} (${existing.email})`
+                    };
+                }
+                
+                // Name + birthdate duplicate check
+                if (existing.nachname.toLowerCase() === newData.nachname.toLowerCase() && 
+                    existing.vorname.toLowerCase() === newData.vorname.toLowerCase() && 
+                    existing.geburtsdatum === newData.geburtsdatum) {
+                    return {
+                        isDuplicate: true,
+                        field: 'name_birthdate',
+                        existing: existing,
+                        message: `Person bereits vorhanden: ${existing.vorname} ${existing.nachname} (${existing.geburtsdatum})`
+                    };
+                }
+            }
+        }
+        
+        return { isDuplicate: false };
+    } catch (error) {
+        console.warn('Duplikat-Prüfung fehlgeschlagen:', error);
+        return { isDuplicate: false }; // Bei Fehler erlauben wir die Eingabe
+    }
 }
 
 // Save data to GitHub repository

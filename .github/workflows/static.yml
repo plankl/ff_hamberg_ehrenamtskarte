@@ -124,3 +124,175 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  # Generate consolidated data files when data branch is updated
+  update-data-files:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: deploy
+
+    steps:
+      - name: Checkout data branch
+        uses: actions/checkout@v4
+        with:
+          ref: data
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Generate all_members.json
+        run: |
+          echo "🔄 Generating all_members.json..."
+          echo '{"generated":"'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'","members":[' > data/all_members.json
+
+          first=true
+          for file in data/member-data-*.json; do
+            if [ -f "$file" ]; then
+              if [ "$first" = true ]; then
+                first=false
+              else
+                echo ',' >> data/all_members.json
+              fi
+              cat "$file" >> data/all_members.json
+            fi
+          done
+
+          echo ']}' >> data/all_members.json
+          echo "✅ Generated all_members.json"
+
+      - name: Generate members.csv
+        run: |
+          echo "🔄 Generating members.csv..."
+          echo "timestamp,nachname,vorname,geburtsdatum,email,strasse,hausnummer,plz,ort,telefon,mta_absolviert,dienstjahre_25,dienstjahre_40" > data/members.csv
+
+          for file in data/member-data-*.json; do
+            if [ -f "$file" ]; then
+              python3 -c "import json; data = json.load(open('$file', 'r', encoding='utf-8')); print(f\"{data['timestamp']},{data['nachname']},{data['vorname']},{data['geburtsdatum']},{data['email']},{data['adresse']['strasse']},{data['adresse']['hausnummer']},{data['adresse']['plz']},{data['adresse']['ort']},{data['telefon']},{data.get('mta_absolviert', False)},{data.get('dienstjahre_25', False)},{data.get('dienstjahre_40', False)}\")" >> data/members.csv
+            fi
+          done
+          echo "✅ Generated members.csv"
+
+      - name: Create Python script for HTML generation
+        run: |
+          cat > generate_html.py << 'EOF'
+          import json
+          import os
+          from datetime import datetime
+
+          # Count members and stats
+          member_files = [f for f in os.listdir('data') if f.startswith('member-data-') and f.endswith('.json')]
+          total_members = len(member_files)
+          mta_count = 0
+          dienstjahre_25_count = 0  
+          dienstjahre_40_count = 0
+
+          members_data = []
+
+          for filename in member_files:
+              try:
+                  with open(f'data/{filename}', 'r', encoding='utf-8') as f:
+                      data = json.load(f)
+                      members_data.append(data)
+                      if data.get('mta_absolviert', False):
+                          mta_count += 1
+                      if data.get('dienstjahre_25', False):
+                          dienstjahre_25_count += 1
+                      if data.get('dienstjahre_40', False):
+                          dienstjahre_40_count += 1
+              except:
+                  pass
+
+          # Generate HTML
+          html_content = f'''<!DOCTYPE html>
+          <html lang="de">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Feuerwehr Hamberg - Mitgliederübersicht</title>
+              <style>
+                  body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                  table {{ border-collapse: collapse; width: 100%; }}
+                  th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+                  th {{ background-color: #c41e3a; color: white; }}
+                  tr:nth-child(even) {{ background-color: #f2f2f2; }}
+                  .stats {{ background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; }}
+              </style>
+          </head>
+          <body>
+              <h1>🚒 Feuerwehr Hamberg - Mitgliederübersicht</h1>
+              <div class="stats">
+                  <h3>📊 Statistiken</h3>
+                  <p><strong>Gesamte Mitglieder:</strong> {total_members}</p>
+                  <p><strong>MTA absolviert:</strong> {mta_count}</p>
+                  <p><strong>25+ Jahre Dienst:</strong> {dienstjahre_25_count}</p>
+                  <p><strong>40+ Jahre Dienst:</strong> {dienstjahre_40_count}</p>
+                  <p><strong>Letzte Aktualisierung:</strong> {datetime.now().strftime('%d.%m.%Y %H:%M Uhr')}</p>
+              </div>
+              <h3>📋 Mitgliederliste</h3>
+              <table>
+                  <tr>
+                      <th>Name</th>
+                      <th>Geburtsdatum</th>
+                      <th>E-Mail</th>
+                      <th>Adresse</th>
+                      <th>Telefon</th>
+                      <th>MTA</th>
+                      <th>25 Jahre</th>
+                      <th>40 Jahre</th>
+                      <th>Eingetragen</th>
+                  </tr>'''
+
+          for data in members_data:
+              mta = '✅' if data.get('mta_absolviert', False) else '❌'
+              d25 = '✅' if data.get('dienstjahre_25', False) else '❌'
+              d40 = '✅' if data.get('dienstjahre_40', False) else '❌'
+              adresse = f"{data['adresse']['strasse']} {data['adresse']['hausnummer']}, {data['adresse']['plz']} {data['adresse']['ort']}"
+              datum = data['timestamp'][:10]
+              
+              html_content += f'''
+                  <tr>
+                      <td>{data['vorname']} {data['nachname']}</td>
+                      <td>{data['geburtsdatum']}</td>
+                      <td>{data['email']}</td>
+                      <td>{adresse}</td>
+                      <td>{data['telefon']}</td>
+                      <td>{mta}</td>
+                      <td>{d25}</td>
+                      <td>{d40}</td>
+                      <td>{datum}</td>
+                  </tr>'''
+
+          html_content += '''
+              </table>
+          </body>
+          </html>'''
+
+          with open('data/members.html', 'w', encoding='utf-8') as f:
+              f.write(html_content)
+
+          print(f"✅ Generated members.html with {total_members} members")
+          EOF
+
+      - name: Generate members.html
+        run: |
+          echo "🔄 Generating members.html..."
+          python3 generate_html.py
+
+      - name: Commit consolidated files
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+
+          git add data/all_members.json data/members.csv data/members.html
+
+          if git diff --staged --quiet; then
+            echo "ℹ️ No changes to consolidated files"
+          else
+            git commit -m "📊 Update consolidated member data files - $(date '+%d.%m.%Y %H:%M')"
+            git push
+            echo "✅ Consolidated files updated successfully"
+          fi
