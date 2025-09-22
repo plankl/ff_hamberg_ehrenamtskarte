@@ -479,6 +479,102 @@ input:valid {
     color: #6c757d;
 }
 
+/* Info Tab Styling */
+.ehrenamtskarte-info,
+.feuerwehr-requirements,
+.application-process,
+.technical-info,
+.contact-info {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-left: 4px solid #c41e3a;
+}
+
+.requirements-section {
+    background: #ffffff;
+    border-radius: 6px;
+    padding: 15px;
+    margin: 15px 0;
+    border: 1px solid #dee2e6;
+}
+
+.external-links {
+    background: #e8f4f8;
+    border-radius: 6px;
+    padding: 15px;
+    margin: 15px 0;
+    border-left: 4px solid #0066cc;
+}
+
+.external-links a {
+    color: #0066cc;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.external-links a:hover {
+    color: #004499;
+    text-decoration: underline;
+}
+
+.info-content h3 {
+    color: #c41e3a;
+    margin-bottom: 20px;
+    font-size: 1.4em;
+}
+
+.info-content h4 {
+    color: #2c5282;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+.info-content ul {
+    margin: 10px 0;
+    padding-left: 25px;
+}
+
+.info-content li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.info-content strong {
+    color: #c41e3a;
+}
+
+.application-process ol {
+    counter-reset: step-counter;
+    list-style: none;
+    padding-left: 30px;
+}
+
+.application-process ol li {
+    counter-increment: step-counter;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.application-process ol li::before {
+    content: counter(step-counter);
+    background: #c41e3a;
+    color: white;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    left: -35px;
+    top: 0;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
 @media (max-width: 768px) {
     .modal-content {
         margin: 10% auto;
@@ -497,5 +593,29 @@ input:valid {
     
     .btn {
         width: 100%;
+    }
+    
+    .ehrenamtskarte-info,
+    .feuerwehr-requirements,
+    .application-process,
+    .technical-info,
+    .contact-info {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .requirements-section {
+        padding: 12px;
+    }
+    
+    .application-process ol {
+        padding-left: 20px;
+    }
+    
+    .application-process ol li::before {
+        left: -25px;
+        width: 20px;
+        height: 20px;
+        font-size: 0.8em;
     }
 }
