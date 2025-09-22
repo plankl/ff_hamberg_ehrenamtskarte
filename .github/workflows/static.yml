@@ -1,11 +1,13 @@
 # Feuerwehr Hamberg - GitHub Pages Deployment
+# TEMPORARILY DISABLED - Continue development tomorrow
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches: [main]
+  # Temporarily disabled all triggers
+  # push:
+  #   branches: [main]
   # Allow manual triggering only
-  workflow_dispatch:
+  # workflow_dispatch:
 
 permissions:
   contents: write
@@ -83,15 +85,15 @@ jobs:
 
       - name: Inject GitHub token into JavaScript (for data submission)
         run: |
-          # Debug: Check if FF_DATA_TOKEN secret exists
-          echo "🔍 Debug: Checking FF_DATA_TOKEN availability..."
-          if [ ! -z "${{ secrets.FF_DATA_TOKEN }}" ]; then
-            echo "✅ FF_DATA_TOKEN found - enabling data submission functionality"
-            echo "🔍 Token starts with: $(echo '${{ secrets.FF_DATA_TOKEN }}' | cut -c1-8)..."
-            echo "🔍 Token length: $(echo '${{ secrets.FF_DATA_TOKEN }}' | wc -c)"
+          # Debug: Check if DATA_TRANSFER_TOKEN secret exists
+          echo "🔍 Debug: Checking DATA_TRANSFER_TOKEN availability..."
+          if [ ! -z "${{ secrets.DATA_TRANSFER_TOKEN }}" ]; then
+            echo "✅ DATA_TRANSFER_TOKEN found - enabling data submission functionality"
+            echo "🔍 Token starts with: $(echo '${{ secrets.DATA_TRANSFER_TOKEN }}' | cut -c1-8)..."
+            echo "🔍 Token length: $(echo '${{ secrets.DATA_TRANSFER_TOKEN }}' | wc -c)"
             
             # Use a simpler replacement approach
-            TOKEN="${{ secrets.FF_DATA_TOKEN }}"
+            TOKEN="${{ secrets.DATA_TRANSFER_TOKEN }}"
             # Escape special characters for sed
             ESCAPED_TOKEN=$(printf '%s\n' "$TOKEN" | sed 's:[\\/&]:\\&:g')
             sed "s/GITHUB_TOKEN_PLACEHOLDER/$ESCAPED_TOKEN/g" script.js > script_temp.js
@@ -111,13 +113,13 @@ jobs:
             
             echo "✅ Data submission enabled with secure token injection"
           else
-            echo "❌ FF_DATA_TOKEN not found in secrets!"
+            echo "❌ DATA_TRANSFER_TOKEN not found in secrets!"
             echo "⚠️  Website will work in preview mode only"
             echo ""
             echo "📝 To fix this issue:"
             echo "   1. Go to: https://github.com/${{ github.repository }}/settings/secrets/actions"
             echo "   2. Click 'New repository secret'"
-            echo "   3. Name: FF_DATA_TOKEN"
+            echo "   3. Name: DATA_TRANSFER_TOKEN"
             echo "   4. Value: Your Personal Access Token (ghp_...)"
             echo "   5. Click 'Add secret'"
             echo ""

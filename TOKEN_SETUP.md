@@ -2,7 +2,7 @@
 
 ## Problem
 
-Die Website zeigt den Fehler: "Token-Konfiguration fehlt! Administrator muss FF_DATA_TOKEN Secret hinzufügen."
+Die Website zeigt den Fehler: "Token-Konfiguration fehlt! Administrator muss DATA_TRANSFER_TOKEN Secret hinzufügen."
 
 ## Lösung: GitHub Secret konfigurieren
 
@@ -22,7 +22,7 @@ Die Website zeigt den Fehler: "Token-Konfiguration fehlt! Administrator muss FF_
 
 1. Gehen Sie zu: https://github.com/plankl/ff_hamberg_ehrenamtskarte/settings/secrets/actions
 2. Klicken Sie **"New repository secret"**
-3. Name: `FF_DATA_TOKEN`
+3. Name: `DATA_TRANSFER_TOKEN`
 4. Value: Ihr kopiertes Token (beginnt mit `ghp_`)
 5. Klicken Sie **"Add secret"**
 

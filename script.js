@@ -410,11 +410,11 @@ async function getGitHubToken() {
     // Check if running on GitHub Pages with Actions (fallback)
     if (window.location.hostname.includes('github.io')) {
         console.error('❌ No valid token found. Current token:', GITHUB_TOKEN);
-        console.error('🔧 Token injection failed. This indicates FF_DATA_TOKEN secret is not properly configured.');
+        console.error('🔧 Token injection failed. This indicates DATA_TRANSFER_TOKEN secret is not properly configured.');
         
         // Show user-friendly error with instructions first
         showStatus(
-            '❌ Token-Konfiguration fehlt! Administrator muss FF_DATA_TOKEN Secret hinzufügen.',
+            '❌ Token-Konfiguration fehlt! Administrator muss DATA_TRANSFER_TOKEN Secret hinzufügen.',
             'error'
         );
         
@@ -423,7 +423,7 @@ async function getGitHubToken() {
             '⚠️ GitHub Token nicht verfügbar!\n\n' +
             'Temporäre Lösung: Geben Sie Ihren Personal Access Token ein:\n' +
             '(Dieser sollte mit "ghp_" beginnen)\n\n' +
-            'Dauerhaften Fix: FF_DATA_TOKEN Secret in GitHub konfigurieren\n' +
+            'Dauerhaften Fix: DATA_TRANSFER_TOKEN Secret in GitHub konfigurieren\n' +
             'Token erstellen: https://github.com/settings/tokens'
         );
         
