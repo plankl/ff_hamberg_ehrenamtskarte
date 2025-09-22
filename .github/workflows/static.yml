@@ -1,156 +1,58 @@
-# Simple workflow for deploying static content to GitHub Pagesname: Deploy GitHub Pages and Handle Data Submissionname: Deploy GitHub Pages and Handle Data Submission
-
-name: Deploy static content to Pages
-
-
+name: Deploy GitHub Pages and Handle Data Submission
 
 on:
-
-  # Runs on pushes targeting the default branchon:on:
-
   push:
-
-    branches: ["main"]  push:  push:
-
-
-
-  # Allows you to run this workflow manually from the Actions tab    branches: [main]    branches: [main]
-
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Allow manual triggering
   workflow_dispatch:
 
-  pull_request:  pull_request:
-
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-
-permissions:    branches: [main]    branches: [main]
-
-  contents: read
-
-  pages: write  workflow_dispatch:  # Allow manual triggering
-
+permissions:
+  contents: write
+  pages: write
   id-token: write
 
-  workflow_dispatch:
-
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.permissions:
-
+# Allow only one concurrent deployment
 concurrency:
-
-  group: "pages"  contents: writepermissions:
-
+  group: "pages"
   cancel-in-progress: false
 
-  pages: write  contents: write
-
 jobs:
-
-  # Single deploy job since we're just deploying  id-token: write  pages: write
-
-  deploy:
-
-    environment:  id-token: write
-
-      name: github-pages
-
-      url: ${{ steps.deployment.outputs.page_url }}concurrency:
-
+  # Build and deploy the website
+  build-and-deploy:
     runs-on: ubuntu-latest
 
-    steps:  group: "pages"# Allow only one concurrent deployment
-
-      - name: Checkout
-
-        uses: actions/checkout@v4  cancel-in-progress: falseconcurrency:
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Pages
+        uses: actions/configure-pages@v4
 
-        uses: actions/configure-pages@v5  group: "pages"
+      - name: Create data branch if it doesn't exist
+        run: |
+          # Check if data branch exists
+          if ! git ls-remote --exit-code --heads origin data; then
+            echo "Creating data branch..."
+            git checkout --orphan data
+            git rm -rf .
+            echo "# Data Storage Branch" > README.md
+            echo "This branch contains member data files." >> README.md
+            echo "Files are stored in JSON format with timestamps." >> README.md
+            mkdir -p data
+            echo "[]" > data/.gitkeep
+            git add README.md data/.gitkeep
+            git commit -m "Initialize data branch"
+            git push origin data
+            git checkout main
+          else
+            echo "Data branch already exists"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload artifact
-
-        uses: actions/upload-pages-artifact@v3jobs:  cancel-in-progress: false
-
-        with:
-
-          # Upload entire repository  build-and-deploy:
-
-          path: '.'
-
-      - name: Deploy to GitHub Pages    environment:jobs:
-
-        id: deployment
-
-        uses: actions/deploy-pages@v4      name: github-pages  # Build and deploy the website
-
-      url: ${{ steps.deployment.outputs.page_url }}  build-and-deploy:
-
-    runs-on: ubuntu-latest    environment:
-
-      name: github-pages
-
-    steps:      url: ${{ steps.deployment.outputs.page_url }}
-
-    - name: Checkout repository    runs-on: ubuntu-latest
-
-      uses: actions/checkout@v4
-
-    steps:
-
-    - name: Setup Pages    - name: Checkout repository
-
-      uses: actions/configure-pages@v4      uses: actions/checkout@v4
-
-
-
-    - name: Inject GitHub token into JavaScript (if available)    - name: Setup Pages
-
-      run: |      uses: actions/configure-pages@v4
-
-        if [ -n "${{ secrets.FF_DATA_TOKEN }}" ]; then
-
-          echo "FF_DATA_TOKEN found, injecting into JavaScript..."    - name: Create data branch if it doesn't exist
-
-          sed 's/window\.FF_DATA_TOKEN || null/"${{ secrets.FF_DATA_TOKEN }}"/g' script.js > script_with_token.js      run: |
-
-          mv script_with_token.js script.js        # Configure git for GitHub Actions
-
-        else        git config --global user.email "action@github.com"
-
-          echo "FF_DATA_TOKEN not found, website will work in preview mode only"        git config --global user.name "GitHub Action"
-
-        fi        
-
-        # Check if data branch exists
-
-    - name: Upload artifact        if ! git ls-remote --exit-code --heads origin data; then
-
-      uses: actions/upload-pages-artifact@v3          echo "Creating data branch..."
-
-      with:          git checkout --orphan data
-
-        path: '.'          git rm -rf .
-
-          echo "# Data Storage Branch" > README.md
-
-    - name: Deploy to GitHub Pages          echo "This branch contains member data files." >> README.md
-
-      id: deployment          echo "Files are stored in JSON format with timestamps." >> README.md
-
-      uses: actions/deploy-pages@v4          mkdir -p data
-          echo "[]" > data/.gitkeep
-          git add README.md data/.gitkeep
-          git commit -m "Initialize data branch"
-          git push origin data
-          git checkout main
-        else
-          echo "Data branch already exists"
-        fi
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Inject GitHub token into JavaScript
+      - name: Inject GitHub token into JavaScript
         run: |
           # Create a version of script.js with the token injected
           sed 's/window\.FF_DATA_TOKEN || null/"${{ secrets.FF_DATA_TOKEN }}"/g' script.js > script_with_token.js
