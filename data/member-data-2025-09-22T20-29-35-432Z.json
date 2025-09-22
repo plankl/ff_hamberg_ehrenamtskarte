@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-09-22T20:29:32.821Z",
+  "nachname": "Meier",
+  "vorname": "Sepp",
+  "geburtsdatum": "1989-12-11",
+  "email": "asdfa@asdf.de",
+  "adresse": {
+    "strasse": "arsdfal",
+    "hausnummer": "12a",
+    "plz": "98767",
+    "ort": "arschdrof"
+  },
+  "telefon": "12321344343",
+  "qualifikationen": {
+    "mta_absolviert": false,
+    "dienstjahre_25": true,
+    "dienstjahre_40": false
+  },
+  "mta_absolviert": false,
+  "dienstjahre_25": true,
+  "dienstjahre_40": false,
+  "datenschutz_zugestimmt": true
+}
