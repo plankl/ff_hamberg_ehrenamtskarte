@@ -9,10 +9,41 @@ const GITHUB_CONFIG = {
 // DOM Elements
 const form = document.getElementById('memberForm');
 const statusDiv = document.getElementById('status');
+const previewModal = document.getElementById('previewModal');
+const previewBtn = document.querySelector('.preview-btn');
+const submitBtn = document.querySelector('.submit-btn');
 
 // Initialize form event listeners
 document.addEventListener('DOMContentLoaded', function() {
+    initializeTabs();
+    initializeForm();
+    initializeModal();
+});
+
+// Initialize tab functionality
+function initializeTabs() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetTab = btn.getAttribute('data-tab');
+            
+            // Remove active class from all tabs and panes
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabPanes.forEach(p => p.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding pane
+            btn.classList.add('active');
+            document.getElementById(targetTab).classList.add('active');
+        });
+    });
+}
+
+// Initialize form functionality
+function initializeForm() {
     form.addEventListener('submit', handleFormSubmit);
+    previewBtn.addEventListener('click', showPreview);
     
     // Add real-time validation
     const inputs = form.querySelectorAll('input[required]');
@@ -20,16 +51,71 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('blur', validateField);
         input.addEventListener('input', clearErrors);
     });
-});
+}
 
-// Form submission handler
-async function handleFormSubmit(event) {
-    event.preventDefault();
+// Initialize modal functionality
+function initializeModal() {
+    const closeBtn = document.querySelector('.close');
+    const editBtn = document.getElementById('editData');
+    const confirmBtn = document.getElementById('confirmSubmit');
     
+    closeBtn.addEventListener('click', closeModal);
+    editBtn.addEventListener('click', closeModal);
+    confirmBtn.addEventListener('click', confirmAndSubmit);
+    
+    // Close modal when clicking outside
+    window.addEventListener('click', (event) => {
+        if (event.target === previewModal) {
+            closeModal();
+        }
+    });
+}
+
+// Show data preview
+function showPreview() {
     if (!validateForm()) {
         showStatus('Bitte überprüfen Sie Ihre Eingaben.', 'error');
         return;
     }
+    
+    const formData = collectFormData();
+    displayPreview(formData);
+    previewModal.style.display = 'block';
+    
+    // Show submit button after preview is shown
+    showSubmitButton();
+}
+
+// Display preview data in modal
+function displayPreview(data) {
+    const previewDiv = document.getElementById('previewData');
+    
+    const qualifikationen = [];
+    if (data.mta_absolviert) qualifikationen.push('MTA absolviert');
+    if (data.dienstjahre_25) qualifikationen.push('25 Jahre Dienst');
+    if (data.dienstjahre_40) qualifikationen.push('40 Jahre Dienst');
+    
+    previewDiv.innerHTML = `
+        <table class="preview-data-table">
+            <tr><th>Name:</th><td>${data.vorname} ${data.nachname}</td></tr>
+            <tr><th>Geburtsdatum:</th><td>${data.geburtsdatum}</td></tr>
+            <tr><th>E-Mail:</th><td>${data.email}</td></tr>
+            <tr><th>Adresse:</th><td>${data.adresse.strasse} ${data.adresse.hausnummer}<br>${data.adresse.plz} ${data.adresse.ort}</td></tr>
+            <tr><th>Telefon:</th><td>${data.telefon}</td></tr>
+            <tr><th>Qualifikationen:</th><td>${qualifikationen.length > 0 ? qualifikationen.join('<br>') : 'Keine angegeben'}</td></tr>
+            <tr><th>Erfasst am:</th><td>${new Date(data.timestamp).toLocaleString('de-DE')}</td></tr>
+        </table>
+    `;
+}
+
+// Close modal
+function closeModal() {
+    previewModal.style.display = 'none';
+}
+
+// Confirm and submit data
+async function confirmAndSubmit() {
+    closeModal();
     
     const formData = collectFormData();
     
@@ -38,10 +124,18 @@ async function handleFormSubmit(event) {
         await saveDataToGitHub(formData);
         showStatus('✓ Daten erfolgreich übertragen!', 'success');
         form.reset();
+        submitBtn.style.display = 'none';
+        previewBtn.style.display = 'block';
     } catch (error) {
         console.error('Error saving data:', error);
         showStatus('❌ Fehler beim Übertragen der Daten. Bitte versuchen Sie es erneut.', 'error');
     }
+}
+
+// Form submission handler (now only handles preview)
+async function handleFormSubmit(event) {
+    event.preventDefault();
+    showPreview();
 }
 
 // Collect form data
@@ -60,6 +154,15 @@ function collectFormData() {
             ort: formData.get('ort').trim()
         },
         telefon: formData.get('telefon').trim(),
+        qualifikationen: {
+            mta_absolviert: document.getElementById('mta_absolviert').checked,
+            dienstjahre_25: document.getElementById('dienstjahre_25').checked,
+            dienstjahre_40: document.getElementById('dienstjahre_40').checked
+        },
+        // Legacy support for preview function
+        mta_absolviert: document.getElementById('mta_absolviert').checked,
+        dienstjahre_25: document.getElementById('dienstjahre_25').checked,
+        dienstjahre_40: document.getElementById('dienstjahre_40').checked,
         datenschutz_zugestimmt: true
     };
     
@@ -201,6 +304,13 @@ function showStatus(message, type) {
             statusDiv.style.display = 'none';
         }, 5000);
     }
+}
+
+// Show submit button after preview
+function showSubmitButton() {
+    previewBtn.style.display = 'none';
+    submitBtn.style.display = 'block';
+    submitBtn.onclick = confirmAndSubmit;
 }
 
 // Add some additional security measures

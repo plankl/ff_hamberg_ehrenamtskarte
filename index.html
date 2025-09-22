@@ -14,7 +14,17 @@
             <p>Bitte füllen Sie alle Felder vollständig aus</p>
         </header>
 
-        <form id="memberForm" class="member-form">
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button type="button" class="tab-btn active" data-tab="formular">📝 Formular</button>
+            <button type="button" class="tab-btn" data-tab="infos">ℹ️ Infos</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Formular Tab -->
+            <div id="formular" class="tab-pane active">
+                <form id="memberForm" class="member-form">
             <div class="form-group">
                 <label for="nachname">Nachname *</label>
                 <input type="text" id="nachname" name="nachname" required>
@@ -62,6 +72,31 @@
                 <input type="tel" id="telefon" name="telefon" required>
             </div>
 
+            <h3 class="section-title">🎖️ Qualifikationen & Dienstjahre</h3>
+            
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="mta_absolviert" name="mta_absolviert">
+                    MTA (Modulare Truppausbildung / Truppmannausbildung) absolviert
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="dienstjahre_25" name="dienstjahre_25">
+                    25 Jahre aktiv im Dienst
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="dienstjahre_40" name="dienstjahre_40">
+                    40 Jahre aktiv im Dienst
+                </label>
+            </div>
+
+            <h3 class="section-title">✅ Bestätigung</h3>
+            
             <div class="form-group">
                 <label class="checkbox-label">
                     <input type="checkbox" id="datenschutz" required>
@@ -69,10 +104,58 @@
                 </label>
             </div>
 
-            <button type="submit" class="submit-btn">Daten übermitteln</button>
-        </form>
+            <button type="button" class="preview-btn">🔍 Daten überprüfen</button>
+            <button type="submit" class="submit-btn" style="display: none;">📤 Daten übermitteln</button>
+                </form>
 
-        <div id="status" class="status-message"></div>
+                <div id="status" class="status-message"></div>
+            </div>
+
+            <!-- Infos Tab -->
+            <div id="infos" class="tab-pane">
+                <div class="info-content">
+                    <h3>📋 Informationen zur Datenerfassung</h3>
+                    <p><em>Dieser Bereich wird in Kürze mit weiteren Informationen ergänzt.</em></p>
+                    
+                    <h4>🎯 Zweck der Datenerfassung</h4>
+                    <ul>
+                        <li>Verwaltung der Mitgliederdaten</li>
+                        <li>Kontaktmöglichkeiten für Einsätze und Termine</li>
+                        <li>Erfassung von Qualifikationen und Dienstjahren</li>
+                        <li>Planung von Aus- und Fortbildungen</li>
+                    </ul>
+
+                    <h4>🔒 Datenschutz</h4>
+                    <ul>
+                        <li>Alle Daten werden sicher und verschlüsselt übertragen</li>
+                        <li>Speicherung erfolgt in einem geschützten GitHub Repository</li>
+                        <li>Zugriff nur für autorisierte Personen der Feuerwehr</li>
+                        <li>Datenverarbeitung erfolgt gemäß DSGVO</li>
+                    </ul>
+
+                    <h4>📞 Kontakt</h4>
+                    <p>Bei Fragen wenden Sie sich bitte an die Feuerwehr-Leitung.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Preview Modal -->
+        <div id="previewModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>🔍 Datenvorschau</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p>Bitte überprüfen Sie Ihre Eingaben:</p>
+                    <div id="previewData"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="editData">✏️ Bearbeiten</button>
+                    <button type="button" class="btn btn-primary" id="confirmSubmit">✅ Bestätigen & Senden</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
