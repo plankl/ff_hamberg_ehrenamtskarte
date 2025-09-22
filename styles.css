@@ -159,7 +159,8 @@ label {
 input[type="text"],
 input[type="email"],
 input[type="tel"],
-input[type="date"] {
+input[type="date"],
+input[type="password"] {
     width: 100%;
     padding: 12px 15px;
     border: 2px solid #e0e0e0;
@@ -172,11 +173,29 @@ input[type="date"] {
 input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="tel"]:focus,
-input[type="date"]:focus {
+input[type="date"]:focus,
+input[type="password"]:focus {
     outline: none;
     border-color: #c41e3a;
     background-color: white;
     box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.1);
+}
+
+input[type="password"] {
+    background-color: #fff8f8;
+    font-family: 'Courier New', monospace;
+}
+
+input[type="password"]:focus {
+    background-color: white;
+}
+
+.form-hint {
+    display: block;
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-top: 5px;
+    font-style: italic;
 }
 
 input:invalid:not(:focus) {

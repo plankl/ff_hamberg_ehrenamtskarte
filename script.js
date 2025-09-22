@@ -6,6 +6,20 @@ const GITHUB_CONFIG = {
     token: '', // Will be set via environment or prompt
 };
 
+// Access Control Configuration
+const ACCESS_CONFIG = {
+    // Das richtige Passwort - ändern Sie dies zu Ihrem gewünschten Passwort
+    correctPassword: 'FFHamberg2025!', // TODO: Ändern Sie dieses Passwort!
+    maxAttempts: 3,
+    lockoutTime: 300000 // 5 Minuten in Millisekunden
+};
+
+// Password attempt tracking
+let passwordAttempts = {
+    count: 0,
+    lastAttempt: 0
+};
+
 // DOM Elements
 const form = document.getElementById('memberForm');
 const statusDiv = document.getElementById('status');
@@ -71,10 +85,58 @@ function initializeModal() {
     });
 }
 
+// Validate access password
+function validatePassword() {
+    const passwordField = document.getElementById('access_password');
+    const enteredPassword = passwordField.value.trim();
+    
+    // Check if user is locked out
+    const now = Date.now();
+    if (passwordAttempts.count >= ACCESS_CONFIG.maxAttempts && 
+        (now - passwordAttempts.lastAttempt) < ACCESS_CONFIG.lockoutTime) {
+        const remainingTime = Math.ceil((ACCESS_CONFIG.lockoutTime - (now - passwordAttempts.lastAttempt)) / 1000 / 60);
+        showStatus(`❌ Zu viele Fehlversuche. Bitte warten Sie ${remainingTime} Minuten.`, 'error');
+        return false;
+    }
+    
+    // Reset attempts if lockout time has passed
+    if ((now - passwordAttempts.lastAttempt) >= ACCESS_CONFIG.lockoutTime) {
+        passwordAttempts.count = 0;
+    }
+    
+    // Check password
+    if (enteredPassword !== ACCESS_CONFIG.correctPassword) {
+        passwordAttempts.count++;
+        passwordAttempts.lastAttempt = now;
+        
+        const remainingAttempts = ACCESS_CONFIG.maxAttempts - passwordAttempts.count;
+        
+        if (remainingAttempts > 0) {
+            showStatus(`❌ Falsches Passwort. Noch ${remainingAttempts} Versuche übrig.`, 'error');
+        } else {
+            showStatus(`❌ Zu viele Fehlversuche. Account für 5 Minuten gesperrt.`, 'error');
+        }
+        
+        passwordField.classList.add('error');
+        passwordField.focus();
+        return false;
+    }
+    
+    // Password correct - reset attempts
+    passwordAttempts.count = 0;
+    passwordField.classList.remove('error');
+    return true;
+}
+
 // Show data preview
 function showPreview() {
     if (!validateForm()) {
         showStatus('Bitte überprüfen Sie Ihre Eingaben.', 'error');
+        return;
+    }
+    
+    // Validate password before showing preview
+    if (!validatePassword()) {
         return;
     }
     
@@ -115,6 +177,11 @@ function closeModal() {
 
 // Confirm and submit data
 async function confirmAndSubmit() {
+    // First validate password
+    if (!validatePassword()) {
+        return; // Password validation failed, stop submission
+    }
+    
     closeModal();
     
     const formData = collectFormData();
@@ -124,6 +191,10 @@ async function confirmAndSubmit() {
         await saveDataToGitHub(formData);
         showStatus('✓ Daten erfolgreich übertragen!', 'success');
         form.reset();
+        
+        // Clear password field after successful submission
+        document.getElementById('access_password').value = '';
+        
         submitBtn.style.display = 'none';
         previewBtn.style.display = 'block';
     } catch (error) {

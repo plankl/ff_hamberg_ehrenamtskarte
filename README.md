@@ -99,10 +99,26 @@ ff_hamberg_ehrenamtskarte/
 ## 🔒 Sicherheitsfeatures
 
 - **GitHub Token Schutz:** Token wird über GitHub Secrets verwaltet
+- **Passwort-Schutz:** Zugriffsbeschränkung mit konfigurierbarem Passwort
 - **Rate Limiting:** 10 Sekunden Cooldown zwischen Übertragungen
 - **Input Validation:** Client- und Server-seitige Validierung
 - **HTTPS:** Sichere Datenübertragung
 - **Separate Data Branch:** Daten sind vom öffentlichen Code getrennt
+- **Brute-Force Schutz:** Automatische Sperrung nach 3 Fehlversuchen für 5 Minuten
+
+### 🔐 Passwort-Konfiguration
+
+Das Standard-Passwort ist `FFHamberg2025!` und kann in der Datei `script.js` geändert werden:
+
+```javascript
+const ACCESS_CONFIG = {
+    correctPassword: 'IhrNeuesPasswort123!', // TODO: Ändern Sie dieses Passwort!
+    maxAttempts: 3,
+    lockoutTime: 300000 // 5 Minuten in Millisekunden
+};
+```
+
+**Wichtig:** Ändern Sie das Passwort nach der ersten Einrichtung!
 
 ## 💾 Daten herunterladen
 
