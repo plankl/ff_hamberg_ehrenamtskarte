@@ -99,14 +99,17 @@ jobs:
           if [ ! -z "${{ secrets.FF_DATA_TOKEN }}" ]; then
             echo "✅ FF_DATA_TOKEN found - enabling data submission functionality"
             # Replace the token placeholder in the JavaScript file
-            sed 's/return window\.FF_DATA_TOKEN || null;/return "${{ secrets.FF_DATA_TOKEN }}";/g' script.js > script_with_token.js
+            sed 's/GITHUB_TOKEN_PLACEHOLDER/${{ secrets.FF_DATA_TOKEN }}/g' script.js > script_with_token.js
             mv script_with_token.js script.js
             echo "✅ Data submission enabled with secure token injection"
+            echo "Token injection completed successfully"
           else
             echo "⚠️  FF_DATA_TOKEN not configured - website will work in preview mode only"
             echo "   To enable data submission:"
             echo "   1. Create Personal Access Token with 'repo' permissions"
             echo "   2. Add as repository secret named 'FF_DATA_TOKEN'"
+            echo "   3. Go to Repository Settings → Secrets and variables → Actions"
+            echo "   4. Add new repository secret: FF_DATA_TOKEN"
           fi
 
       - name: Upload artifact

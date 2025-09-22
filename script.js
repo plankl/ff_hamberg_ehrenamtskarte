@@ -6,6 +6,9 @@ const GITHUB_CONFIG = {
     token: '', // Will be set via environment or prompt
 };
 
+// Token configuration - will be replaced by GitHub Actions
+const GITHUB_TOKEN = 'GITHUB_TOKEN_PLACEHOLDER';
+
 // Access Control Configuration
 const ACCESS_CONFIG = {
     // Das richtige Passwort - ändern Sie dies zu Ihrem gewünschten Passwort
@@ -281,13 +284,15 @@ async function saveDataToGitHub(data) {
 
 // Get GitHub token (this will be replaced with GitHub Actions workflow)
 async function getGitHubToken() {
-    // In production, this will be handled by GitHub Actions
-    // For now, we'll use a placeholder that prompts for manual input
+    // Check if we have a valid token from GitHub Actions deployment
+    if (GITHUB_TOKEN && GITHUB_TOKEN !== 'GITHUB_TOKEN_PLACEHOLDER') {
+        return GITHUB_TOKEN;
+    }
     
-    // Check if running on GitHub Pages with Actions
+    // Check if running on GitHub Pages with Actions (fallback)
     if (window.location.hostname.includes('github.io')) {
-        // Token should be injected by GitHub Actions workflow
-        return window.FF_DATA_TOKEN || null;
+        // If no token was injected, show error message
+        throw new Error('GitHub Token ist nicht verfügbar. Bitte konfigurieren Sie das FF_DATA_TOKEN Secret.');
     }
     
     // For local testing, prompt for token
