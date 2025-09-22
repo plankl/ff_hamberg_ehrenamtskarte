@@ -297,7 +297,7 @@ async function getGitHubToken() {
     });
     
     // Check if we have a valid token from GitHub Actions deployment
-    if (isValidToken && !isPlaceholder) {
+    if (isValidToken) {
         console.log('✅ Valid GitHub token found!');
         return GITHUB_TOKEN;
     }
