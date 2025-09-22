@@ -1,0 +1,5 @@
+timestamp,nachname,vorname,geburtsdatum,email,strasse,hausnummer,plz,ort,telefon,mta_absolviert,dienstjahre_25,dienstjahre_40
+2025-09-22T20:08:50.160Z,Plankl,Sebastian,1989-11-19,sebastian.plankl@gmail.com,Rascher Str.,3b,92363,Hamberg,01711221334,True,False,False
+2025-09-22T20:09:21.033Z,Plankl,Sebastia,1989-11-19,sebastian.plankl@gmail.com,Rascher Str.,3b,92363,Hamberg,01711221334,False,True,False
+2025-09-22T20:20:19.863Z,Plankl,Sebastia,1989-11-19,sebastian.plankl@gmail.com,Rascher Str.,3b,92363,Hamberg,01711221334,True,False,False
+2025-09-22T20:29:32.821Z,Meier,Sepp,1989-12-11,asdfa@asdf.de,arsdfal,12a,98767,arschdrof,12321344343,False,True,False
