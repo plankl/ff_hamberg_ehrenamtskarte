@@ -285,16 +285,20 @@ async function saveDataToGitHub(data) {
 // Get GitHub token (this will be replaced with GitHub Actions workflow)
 async function getGitHubToken() {
     // Debug information
+    const isPlaceholder = GITHUB_TOKEN === 'GITHUB_TOKEN_PLACEHOLDER';
+    const isValidToken = GITHUB_TOKEN && GITHUB_TOKEN.startsWith('ghp_') && GITHUB_TOKEN.length >= 36;
+    
     console.log('🔍 Token Debug Info:', {
-        'GITHUB_TOKEN': GITHUB_TOKEN,
-        'Is Placeholder': GITHUB_TOKEN === 'GITHUB_TOKEN_PLACEHOLDER',
+        'GITHUB_TOKEN': GITHUB_TOKEN ? GITHUB_TOKEN.substring(0, 8) + '...' : 'null',
+        'Is Placeholder': isPlaceholder,
+        'Is Valid Token': isValidToken,
         'Token Length': GITHUB_TOKEN ? GITHUB_TOKEN.length : 0,
         'Hostname': window.location.hostname
     });
     
     // Check if we have a valid token from GitHub Actions deployment
-    if (GITHUB_TOKEN && GITHUB_TOKEN !== 'GITHUB_TOKEN_PLACEHOLDER') {
-        console.log('✅ Valid token found, length:', GITHUB_TOKEN.length);
+    if (isValidToken && !isPlaceholder) {
+        console.log('✅ Valid GitHub token found!');
         return GITHUB_TOKEN;
     }
     
