@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-09-22T20:38:23.972Z",
+  "nachname": "Plankl",
+  "vorname": "Sebastian",
+  "geburtsdatum": "1989-11-19",
+  "email": "sebastian.plankl@gmail.com",
+  "adresse": {
+    "strasse": "Rascher Str.",
+    "hausnummer": "3b",
+    "plz": "92363",
+    "ort": "Hamberg"
+  },
+  "telefon": "0491711221334",
+  "qualifikationen": {
+    "mta_absolviert": true,
+    "dienstjahre_25": true,
+    "dienstjahre_40": true
+  },
+  "mta_absolviert": true,
+  "dienstjahre_25": true,
+  "dienstjahre_40": true,
+  "datenschutz_zugestimmt": true
+}
