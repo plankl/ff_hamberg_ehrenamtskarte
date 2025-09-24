@@ -81,7 +81,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create config file with token (alternative approach)
+      - name: Create config file with token
         run: |
           echo "🔍 Checking DATA_TRANSFER_TOKEN availability..."
           if [ ! -z "${{ secrets.DATA_TRANSFER_TOKEN }}" ]; then
@@ -89,20 +89,14 @@ jobs:
             echo "🔍 Token starts with: $(echo '${{ secrets.DATA_TRANSFER_TOKEN }}' | cut -c1-8)..."
             echo "🔍 Token length: $(echo '${{ secrets.DATA_TRANSFER_TOKEN }}' | wc -c)"
             
-            # Create a config.js file with the token
-            cat > config.js << 'EOF'
-            // Auto-generated GitHub configuration
-            window.GITHUB_CONFIG = window.GITHUB_CONFIG || {};
-            window.GITHUB_CONFIG.token = 'TOKEN_PLACEHOLDER';
-            window.GITHUB_CONFIG.tokenConfigured = true;
-            console.log('✅ GitHub token configured via deployment');
-            EOF
+            # Create config.js with token using echo instead of cat
+            echo "// Auto-generated GitHub configuration" > config.js
+            echo "window.GITHUB_CONFIG = window.GITHUB_CONFIG || {};" >> config.js
+            echo "window.GITHUB_CONFIG.token = '${{ secrets.DATA_TRANSFER_TOKEN }}';" >> config.js
+            echo "window.GITHUB_CONFIG.tokenConfigured = true;" >> config.js
+            echo "console.log('✅ GitHub token configured via deployment');" >> config.js
             
-            # Replace token in config file
-            sed "s/TOKEN_PLACEHOLDER/${{ secrets.DATA_TRANSFER_TOKEN }}/g" config.js > config_final.js
-            mv config_final.js config.js
-            
-            # Verify replacement
+            # Verify token was written
             if grep -q "ghp_" config.js; then
               echo "✅ Token injection in config.js successful!"
             else
