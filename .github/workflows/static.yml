@@ -1,13 +1,11 @@
 # Feuerwehr Hamberg - GitHub Pages Deployment
-# TEMPORARILY DISABLED - Continue development tomorrow
 name: Deploy to GitHub Pages
 
 on:
-  # Temporarily disabled all triggers
-  # push:
-  #   branches: [main]
-  # Allow manual triggering only
-  # workflow_dispatch:
+  push:
+    branches: [main]
+  # Allow manual triggering
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -92,24 +90,57 @@ jobs:
             echo "🔍 Token starts with: $(echo '${{ secrets.DATA_TRANSFER_TOKEN }}' | cut -c1-8)..."
             echo "🔍 Token length: $(echo '${{ secrets.DATA_TRANSFER_TOKEN }}' | wc -c)"
             
-            # Use a simpler replacement approach
-            TOKEN="${{ secrets.DATA_TRANSFER_TOKEN }}"
-            # Escape special characters for sed
-            ESCAPED_TOKEN=$(printf '%s\n' "$TOKEN" | sed 's:[\\/&]:\\&:g')
-            sed "s/GITHUB_TOKEN_PLACEHOLDER/$ESCAPED_TOKEN/g" script.js > script_temp.js
-            mv script_temp.js script.js
+            # Use Node.js for reliable token replacement
+            cat > token_inject.js << 'EOF'
+            const fs = require('fs');
             
-            # Verify the replacement worked
-            if grep -q "ghp_" script.js; then
-              echo "✅ Token injection successful!"
-            else
-              echo "❌ Token injection failed - no token pattern found"
-              # Debug output
-              echo "Debug: First 10 lines of script.js:"
-              head -10 script.js
-              echo "Debug: Looking for GITHUB_TOKEN_PLACEHOLDER:"
-              grep -n "GITHUB_TOKEN_PLACEHOLDER" script.js || echo "Not found"
-            fi
+            console.log('🔧 Starting token injection...');
+            
+            try {
+                // Read the script file
+                let content = fs.readFileSync('script.js', 'utf8');
+                console.log('📄 Script file read successfully');
+                
+                // Get token from environment
+                const token = process.env.GITHUB_DATA_TOKEN;
+                if (!token) {
+                    throw new Error('No token in environment');
+                }
+                
+                console.log(`🔍 Token validation: starts with ghp_=${token.startsWith('ghp_')}, length=${token.length}`);
+                
+                // Replace placeholder with actual token
+                const updatedContent = content.replace(/GITHUB_TOKEN_PLACEHOLDER/g, token);
+                
+                // Verify replacement occurred
+                const replacements = (content.match(/GITHUB_TOKEN_PLACEHOLDER/g) || []).length;
+                const remaining = (updatedContent.match(/GITHUB_TOKEN_PLACEHOLDER/g) || []).length;
+                
+                console.log(`🔄 Replacements made: ${replacements - remaining} (${remaining} remaining)`);
+                
+                if (replacements === 0) {
+                    throw new Error('No GITHUB_TOKEN_PLACEHOLDER found in script');
+                }
+                
+                if (remaining > 0) {
+                    throw new Error(`${remaining} placeholders still remain`);
+                }
+                
+                // Write back to file
+                fs.writeFileSync('script.js', updatedContent, 'utf8');
+                console.log('✅ Token injection completed successfully!');
+                
+            } catch (error) {
+                console.error('❌ Token injection failed:', error.message);
+                process.exit(1);
+            }
+            EOF
+            
+            # Run the injection with token in environment
+            GITHUB_DATA_TOKEN="${{ secrets.DATA_TRANSFER_TOKEN }}" node token_inject.js
+            
+            # Clean up
+            rm token_inject.js
             
             echo "✅ Data submission enabled with secure token injection"
           else

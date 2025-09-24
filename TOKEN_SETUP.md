@@ -58,7 +58,7 @@ Nach dem Deployment sollte die Website:
 ### Secret nicht verfügbar
 
 - Nur Repository-Owner können Secrets hinzufügen
-- Secret-Name muss exakt `FF_DATA_TOKEN` sein (case-sensitive)
+- Secret-Name muss exakt `DATA_TRANSFER_TOKEN` sein (case-sensitive)
 
 ### Immer noch Fehler
 
