@@ -84,17 +84,21 @@ jobs:
       - name: Create config file with token
         run: |
           echo "🔍 Checking DATA_TRANSFER_TOKEN availability..."
+          echo "🔍 Secret exists check: $([[ ! -z '${{ secrets.DATA_TRANSFER_TOKEN }}' ]] && echo 'YES' || echo 'NO')"
           if [ ! -z "${{ secrets.DATA_TRANSFER_TOKEN }}" ]; then
             echo "✅ DATA_TRANSFER_TOKEN found - creating config file"
             echo "🔍 Token starts with: $(echo '${{ secrets.DATA_TRANSFER_TOKEN }}' | cut -c1-8)..."
             echo "🔍 Token length: $(echo '${{ secrets.DATA_TRANSFER_TOKEN }}' | wc -c)"
             
             # Create config.js with token using echo instead of cat
-            echo "// Auto-generated GitHub configuration" > config.js
+            echo "// Auto-generated GitHub configuration - $(date)" > config.js
             echo "window.GITHUB_CONFIG = window.GITHUB_CONFIG || {};" >> config.js
             echo "window.GITHUB_CONFIG.token = '${{ secrets.DATA_TRANSFER_TOKEN }}';" >> config.js
             echo "window.GITHUB_CONFIG.tokenConfigured = true;" >> config.js
-            echo "console.log('✅ GitHub token configured via deployment');" >> config.js
+            echo "window.GITHUB_CONFIG.deploymentTime = '$(date -u)';" >> config.js
+            echo "console.log('✅ GitHub token configured via deployment at $(date -u)');" >> config.js
+            echo "console.log('🔍 Token length:', window.GITHUB_CONFIG.token ? window.GITHUB_CONFIG.token.length : 'null');" >> config.js
+            echo "console.log('🔍 Token starts with ghp_:', window.GITHUB_CONFIG.token ? window.GITHUB_CONFIG.token.startsWith('ghp_') : false);" >> config.js
             
             # Verify token was written
             if grep -q "ghp_" config.js; then
