@@ -387,13 +387,32 @@ async function saveDataToGitHub(data) {
     return await response.json();
 }
 
-// Get GitHub token (this will be replaced with GitHub Actions workflow)
+// Get GitHub token (new config-based approach)
 async function getGitHubToken() {
-    // Debug information
+    // Check new config-based token first
+    if (window.GITHUB_CONFIG && window.GITHUB_CONFIG.token && window.GITHUB_CONFIG.tokenConfigured) {
+        const configToken = window.GITHUB_CONFIG.token;
+        const isValidConfigToken = configToken && configToken.startsWith('ghp_') && configToken.length >= 36;
+        
+        console.log('🔍 Config Token Debug:', {
+            'Source': 'config.js',
+            'Token': configToken ? configToken.substring(0, 8) + '...' : 'null',
+            'Is Valid': isValidConfigToken,
+            'Token Length': configToken ? configToken.length : 0,
+            'Hostname': window.location.hostname
+        });
+        
+        if (isValidConfigToken) {
+            console.log('✅ Valid GitHub token found from config!');
+            return configToken;
+        }
+    }
+    
+    // Fallback: Check old placeholder-based token
     const isPlaceholder = GITHUB_TOKEN === 'GITHUB_TOKEN_PLACEHOLDER';
     const isValidToken = GITHUB_TOKEN && GITHUB_TOKEN.startsWith('ghp_') && GITHUB_TOKEN.length >= 36;
     
-    console.log('🔍 Token Debug Info:', {
+    console.log('🔍 Fallback Token Debug Info:', {
         'GITHUB_TOKEN': GITHUB_TOKEN ? GITHUB_TOKEN.substring(0, 8) + '...' : 'null',
         'Is Placeholder': isPlaceholder,
         'Is Valid Token': isValidToken,
@@ -401,9 +420,9 @@ async function getGitHubToken() {
         'Hostname': window.location.hostname
     });
     
-    // Check if we have a valid token from GitHub Actions deployment
+    // Check if we have a valid token from old method
     if (isValidToken) {
-        console.log('✅ Valid GitHub token found!');
+        console.log('✅ Valid GitHub token found from fallback!');
         return GITHUB_TOKEN;
     }
     

@@ -81,80 +81,52 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Inject GitHub token into JavaScript (for data submission)
+      - name: Create config file with token (alternative approach)
         run: |
-          # Debug: Check if DATA_TRANSFER_TOKEN secret exists
-          echo "🔍 Debug: Checking DATA_TRANSFER_TOKEN availability..."
+          echo "🔍 Checking DATA_TRANSFER_TOKEN availability..."
           if [ ! -z "${{ secrets.DATA_TRANSFER_TOKEN }}" ]; then
-            echo "✅ DATA_TRANSFER_TOKEN found - enabling data submission functionality"
+            echo "✅ DATA_TRANSFER_TOKEN found - creating config file"
             echo "🔍 Token starts with: $(echo '${{ secrets.DATA_TRANSFER_TOKEN }}' | cut -c1-8)..."
             echo "🔍 Token length: $(echo '${{ secrets.DATA_TRANSFER_TOKEN }}' | wc -c)"
             
-            # Use Node.js for reliable token replacement
-            cat > token_inject.js << 'EOF'
-            const fs = require('fs');
-            
-            console.log('🔧 Starting token injection...');
-            
-            try {
-                // Read the script file
-                let content = fs.readFileSync('script.js', 'utf8');
-                console.log('📄 Script file read successfully');
-                
-                // Get token from environment
-                const token = process.env.GITHUB_DATA_TOKEN;
-                if (!token) {
-                    throw new Error('No token in environment');
-                }
-                
-                console.log(`🔍 Token validation: starts with ghp_=${token.startsWith('ghp_')}, length=${token.length}`);
-                
-                // Replace placeholder with actual token
-                const updatedContent = content.replace(/GITHUB_TOKEN_PLACEHOLDER/g, token);
-                
-                // Verify replacement occurred
-                const replacements = (content.match(/GITHUB_TOKEN_PLACEHOLDER/g) || []).length;
-                const remaining = (updatedContent.match(/GITHUB_TOKEN_PLACEHOLDER/g) || []).length;
-                
-                console.log(`🔄 Replacements made: ${replacements - remaining} (${remaining} remaining)`);
-                
-                if (replacements === 0) {
-                    throw new Error('No GITHUB_TOKEN_PLACEHOLDER found in script');
-                }
-                
-                if (remaining > 0) {
-                    throw new Error(`${remaining} placeholders still remain`);
-                }
-                
-                // Write back to file
-                fs.writeFileSync('script.js', updatedContent, 'utf8');
-                console.log('✅ Token injection completed successfully!');
-                
-            } catch (error) {
-                console.error('❌ Token injection failed:', error.message);
-                process.exit(1);
-            }
+            # Create a config.js file with the token
+            cat > config.js << 'EOF'
+            // Auto-generated GitHub configuration
+            window.GITHUB_CONFIG = window.GITHUB_CONFIG || {};
+            window.GITHUB_CONFIG.token = 'TOKEN_PLACEHOLDER';
+            window.GITHUB_CONFIG.tokenConfigured = true;
+            console.log('✅ GitHub token configured via deployment');
             EOF
             
-            # Run the injection with token in environment
-            GITHUB_DATA_TOKEN="${{ secrets.DATA_TRANSFER_TOKEN }}" node token_inject.js
+            # Replace token in config file
+            sed "s/TOKEN_PLACEHOLDER/${{ secrets.DATA_TRANSFER_TOKEN }}/g" config.js > config_final.js
+            mv config_final.js config.js
             
-            # Clean up
-            rm token_inject.js
+            # Verify replacement
+            if grep -q "ghp_" config.js; then
+              echo "✅ Token injection in config.js successful!"
+            else
+              echo "❌ Token injection failed"
+              exit 1
+            fi
             
-            echo "✅ Data submission enabled with secure token injection"
+            echo "✅ Config file created with token"
           else
             echo "❌ DATA_TRANSFER_TOKEN not found in secrets!"
-            echo "⚠️  Website will work in preview mode only"
             echo ""
-            echo "📝 To fix this issue:"
+            echo "📝 Create the secret:"
             echo "   1. Go to: https://github.com/${{ github.repository }}/settings/secrets/actions"
-            echo "   2. Click 'New repository secret'"
+            echo "   2. Click 'New repository secret'"  
             echo "   3. Name: DATA_TRANSFER_TOKEN"
-            echo "   4. Value: Your Personal Access Token (ghp_...)"
+            echo "   4. Value: Your Personal Access Token (starts with ghp_)"
             echo "   5. Click 'Add secret'"
             echo ""
-            echo "🔗 Create token at: https://github.com/settings/tokens"
+            echo "🔗 Create token: https://github.com/settings/tokens"
+            echo "   ✅ Select: repo (Full control)"
+            echo "   ✅ Select: Contents (Read and write)"
+            
+            # Create empty config file for fallback
+            echo "window.GITHUB_CONFIG = {tokenConfigured: false};" > config.js
           fi
 
       - name: Upload artifact
